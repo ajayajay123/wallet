@@ -36,6 +36,8 @@ urlpatterns = [
 
     # Api
     path('api/', walletapp_view.home_api),
-    path('get-key_api/', walletapp_view.get_key_api),
+    path('key_api/', walletapp_view.get_key_api),
     path('operation-api/', walletapp_view.operation_api),
+    # Web
+    path('', walletapp_view.home),
 ]

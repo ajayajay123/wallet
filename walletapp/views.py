@@ -7,6 +7,7 @@ from .interface import wallet_pb2, wallet_pb2_grpc
 import grpc, json, random
 import time
 from .models import User, Transaction, Contract
+from .forms import Login
 from hashlib import md5
 import traceback
 
@@ -24,11 +25,27 @@ def generate_tocken():
 
 
 def home(request):
-    return render(request, './index.html')
+    if request.method == 'POST':
+        form = Login(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            user_id = form.cleaned_data['user_id']
+            password = form.cleaned_data['user_id']
+
+        return HttpResponse("okay")
+        pass
+    else:
+        form = Login()
+        return render(request, './index.html', {'form': form})
 
 
 def dashboard(request):
-    return render(request, './index.html')
+    token = request.COOKIES['token']
+    user_type = [False, False, False]
+    # index = user_session[token].get("user_type")
+    index = 1
+    user_type[index-1] = True
+    return render(request, './dashboard.html', {'g': user_type[0], 'r': user_type[1], 'n': user_type[2]})
 
 
 def operation(request):
@@ -39,15 +56,15 @@ def operation(request):
 def home_api(request):
     try:
         data = request.data
-        print(data)
-        user = User.objects.filter(id=data.get('user_id'), password=data.get('password')).first()
+        print("data is ", data)
+        user = User.objects.filter(user_id=data.get('user_id'), password=data.get('password')).first()
         if user is None:
             return Response({"msg": "invalid username or password"})
         session = generate_tocken()
         prev_session = user_session_rev.get(user.user_id)
         if prev_session is not None:
             del user_session[prev_session]
-        user_session[session] = user.user_id
+        user_session[session] = {"user_id": user.user_id, "user_type": user.user_type}
         user_session_rev[user.user_id] = session
         return Response({"tocken": session})
     except Exception as exe:
@@ -58,6 +75,14 @@ def home_api(request):
 
 @api_view(['POST'])
 def get_key_api(request):
+    data = request.data
+    want_key = data.get('key')
+    key = generate_tocken()
+    print("data is ", data)
+    if want_key == "add_user":
+        user_key[key] = 3
+        return Response({"key": key})
+    return Response({"msg": "error"})
     pass
 
 
@@ -70,21 +95,25 @@ def operation_api(request):
 
 
 def gen_fun(data):
+    data = {'gen_fun': 'deploy_contract', 'contract_name': 'afasa', 'contract_list': ['afda', 'adfad', 'fdfdf']}
     fun = data.get('fun')
+    print("gen_fun ", data)
     try:
         if fun == "add_user":
             res = add_user(data)
             pass
         elif fun == "deploy_contract":
-            sub_operation = data.get('operation')
             res = deploy_contract(data)
+            return Response(res)
+        elif fun == "execute":
+            sub_operation = data.get('operation')
             if sub_operation == "add_voter":
                 pass
             elif sub_operation == "vote":
                 pass
             else:
                 pass
-            pass
+        pass
         return {"msg": res}
     except Exception as exe:
         print(exe)
@@ -199,13 +228,13 @@ def setup():
     gov_user_model = User()
     gov_user_model.user_id = "gov_user"
     gov_user_model.password = "default"
-    # gov_user_model.type = 1
+    gov_user_model.user_type = 1
     gov_user_model.save()
 
     node_user_model = User()
     node_user_model.user_id = "node_user"
     node_user_model.password = "default"
-    # node_user_model.type = 2
+    node_user_model.user_type = 2
     node_user_model.save()
 
     client = get_client(address)
@@ -243,3 +272,7 @@ def setup():
     node_res = client.add_user(wallet_pb2.WalletData(data=json.dumps(node_registry_user)))
     print("node res ", node_res)
     print("gov_res ", gov_res)
+
+
+if __name__ == "__main__":
+    pass
