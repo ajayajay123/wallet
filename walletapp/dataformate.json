@@ -1,0 +1,171 @@
+{
+  "fun_add_user": {
+    "fun": "add_user",
+    "id": "daslkjda",
+    "name": "name is here",
+    "other_detail": "detail is here"
+  },
+  "ret_add_user": {
+    "ret": "add_user",
+    "public_key": "key",
+    "private_key": "key",
+    "address": "address"
+  },
+  "fun_deploy_smart_contract": {
+    "fun": "deploy_smart_contract",
+    "id": "adskfj",
+    "contact_name": "voting",
+    "params": {
+      "candidate": [
+        {
+          "id": 212,
+          "name": "",
+          "detail": "other"
+        }
+      ]
+    }
+  },
+  "ret_deploy_smart_contract": {
+    "ret": "deploy_smart_contract",
+    "msg": "contract deployed successfully",
+    "contract_id": 5235453878
+  },
+  "fun_execute": {
+    "fun": "execute",
+    "id": "jdsalkfj",
+    "contract_id": 3534625632435,
+    "operation": "vote",
+    "params": {
+      "candidate_id": 325
+    }
+  },
+  "block": {
+    "ignore": "block",
+    "header": {
+      "prev_hash": "kjsdfjp3q45j3kljf",
+      "block": 3234,
+      "time": 3243,
+      "nones": 232243,
+      "merkel_root": {
+        "root": {
+          "child1": {},
+          "child2": {}
+        }
+      }
+    },
+    "block": {
+      "trans_hash": {
+        "hash1": {
+          "input": "data",
+          "output": "result"
+        },
+        "hash2": "tran2"
+      }
+    }
+  },
+  "add_me": {
+    "gen_fun": "add_me",
+    "my_host": "host",
+    "my_certificate": "cc"
+  },
+  "add_nodes": {
+    "gen_fun": "add_nodes",
+    "node_list": ["host1", "host2"]
+  },
+  "add_blocks": {
+    "gen_fun": "add_blocks",
+    "blocks": [{"prev": { "key": "blocks"}}]
+  },
+
+   "get_transaction": {
+     "get_fun": "get_transcation",
+     "key": "key"
+   },
+  "get_block": {
+     "get_fun": "get_transcation",
+     "key": "key"
+   }
+  ,
+  "api": [
+    {
+      "add-user": {
+        "name": "name is here",
+        "city": "",
+        "provision_no": 23,
+        "other": ""
+      },
+      "ret": {
+        "output": "success",
+        "public_key": "key",
+        "private_key": "pri",
+        "tran_hash": "hash"
+      }
+    },
+    {"deploy-smart-contract": {
+      "contact_name": "voting",
+      "candidate": ["pub1", "pub2"]
+    }},
+    {
+      "added-voter": {
+        "contract-id": "id",
+        "voter": ["pub key of voter"]
+      }
+    },
+    {
+      "execute": {
+        "contract-id": "id",
+        "operation": "start"
+      }
+    }
+  ],
+  "api-new": {
+    "home": {
+      "req": {
+        "user_id": "id",
+        "password": "default"
+      },
+      "res": {
+        "session": "key",
+        "type": 1
+      }
+    },
+    "/history": {
+      "req": {
+        "session": "key"
+      },
+      "res": {
+        "transactions": ["key1", "key2", "key3"]
+      }
+    },
+    "/get-add-user-key": {
+      "req": {
+        "session": "key"
+      },
+      "res": {
+        "key": "key"
+      }
+    },
+    "/operation": {
+      "req": {
+        "session": "key",
+        "gen_fun": "fun_name",
+        "input": {}
+      },
+      "res": {
+        "output": "output will be here"
+      }
+    },
+    "/node-registry": {
+      "req": {
+        "session": "key"
+      },
+      "res": {
+        "key": "key"
+      }
+    },
+    "/deploy": {
+      "name": "name is here",
+      "candidates": ["can1", "can2"]
+    }
+  }
+}
