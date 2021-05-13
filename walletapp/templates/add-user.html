@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <title>Project</title>
+        <style>
+            body{
+                margin:0;
+            }
+            .container{margin-left:150px;margin-right:150px}
+
+            .title
+            {
+                font-size:14pt;
+                margin-bottom:10px;
+            }
+            .row{line-height: 25px;margin-bottom:5px}
+            .btn-gp
+            {
+                display: flex;
+                flex-direction: row;
+                flex-wrap:wrap;
+                justify-content: start;
+                margin-top:15px;
+                margin-bottom:15px;
+            }
+            .btn-gp button{margin-right:10px}
+            button{background:#3c6fc2; color:white;border:none;outline:none;border-radius:2px;height:25px;cursor:pointer;box-shadow:1px 1px 4px 0px rgba(0,0,0,.4);min-width:80px};
+            button:active{box-shadow: none;transform: translate(1px,1px);}
+            input[type="text"]{border-color:#3c6fc2;height: 22px;border-radius: 2px;outline:none;}
+        </style>
+    </head>
+    <body>
+        <div class="row nav" style="display:flex;background:#3c6fc2;color:white;height:50px;align-items: center;width:100%;">
+            <div class="container" style="font-size:18pt">Project</div>
+         </div>
+        <div class="row container title">
+            Add User
+        </div>
+        <div class="row container list">
+            <input id="token" type="text" name="token" placeholder="Enter Token"><br/>
+            <input id="input-id" type="text" name="user-id" placeholder="Enter your user Id"><br/>
+            <input id="password" type="password" name="password" placeholder="Password"><br/>
+            <input id="c-password" type="password" name="user-id" placeholder="Confrime password"><br/>
+            
+        </div>
+        <div class="row container btn-gp"><button onclick="submitForm()">Submit</button></div>
+        <div class="row container" id="response"></div>
+        <script type="text/javascript">
+        let uid = null;
+        var resDiv = document.getElementById("response");
+            var url = "http://192.168.1.7:8000/api/add-user/"
+            function submitForm()
+            {
+                var password = document.getElementById("password").value;
+                var cPassword = document.getElementById("password").value;
+                var token = document.getElementById("token").value;
+                var inputDiv = document.getElementById("input-id");
+                if(password != cPassword){
+                    console.log("password doesnot mathch");
+                    return;
+                }
+
+                var user_id = inputDiv.value;
+                var data = JSON.stringify({"user_id": user_id, "password": password, "token": token});
+                var resFun = RenderData(url, data);
+                resFun.then( (res) =>{
+                    console.log(res);
+                    statInterval();
+                    var data = JSON.parse(res);
+                    uid = data.uid;
+                    resDiv.innerHTML = res;
+            
+            }, (error)=>{console.log("error");})
+            }
+
+            function RenderData(url,data)
+            {
+                return new Promise(function(resolve,reject){
+                    var http = new XMLHttpRequest();
+                    http.open("post",url,true);
+                    http.onreadystatechange = function()
+                    {
+                        if(this.status == 200 && this.readyState == 4)
+                        {
+                            resolve(JSON.parse(this.responseText));
+                        }
+                        if(this.status != 200 && this.readyState == 4)
+                        {
+                            reject({status:false, msg : "failed to connect to server"});
+                        }
+                    }
+                    // [{"key":"Content-Type","value":"application/json","description":""}]
+                    http.setRequestHeader("Content-Type", "application/json");
+                    http.send((data != undefined) ? data : null);
+                    console.log("data to be sent ", data);
+                    
+                });
+            }
+        </script>
+
+        <script>
+            let interval;
+            function statInterval(){
+               interval = setTimeout(() =>{
+                    var url = "http://192.168.1.7:8000/api/uid/";
+                    var resFun = RenderData(url, JSON.stringify({"uid": uid}));
+                    resFun.then((res) =>{
+                        console.log("Response of uid", res);
+                        if(res.value != "no"){
+                        clearInterval(interval);
+                       
+                        resDiv.innerHTML = JSON.stringify( res);
+                        }
+                        else{
+                            statInterval();
+                        }
+                    }) 
+                }, 5000);
+            }
+        </script>
+
+    </body>
+</html>

@@ -1,11 +1,20 @@
 if __name__ == "__main__":
-    add_user_data = {"uid": "34422", "fun": "add_user", "id": "daslbkkjda", "host": "localhost:9000", "name": "name is here",
-                     "other_detail": "detail is here"}
+    # file = open('/test/dataformate.json')
+    # data_formate = json.load(file)
+    # print(str(data_formate.get('fun_add_user')))
+    # Deploy Add_Voter Start_Voting
+    # deploy_contract add_voter start vote end winner vote_count
+    add_user_data = {
+        "is_wallet": True,
+        "uid": "34422fsjn", "fun": "add_user", "id": "daslbkkjda", "host": "localhost:9000", "name": "name is here",
+        "other_detail": "detail is here"}
 
     contract_id = "address_c3"
-    deploy_contract_data = {
+    deploy_conract_data = {
+        "is_wallet": True,
+        "uid": "adjkla",
         "fun": "deploy_contract",
-        "id": "c3",
+        "id": "c4",
         "host": "localhost",
         "contract_name": "voting",
         "params": {
@@ -14,6 +23,8 @@ if __name__ == "__main__":
         }
     }
     add_voter = {
+        "is_wallet": True,
+        "uid": "adjkla",
         "fun": "execute",
         "id": "c3",
         "host": "localhost",
@@ -26,6 +37,7 @@ if __name__ == "__main__":
     }
 
     start_voting = {
+        "is_wallet": True,
         "uid": "adjkla",
         "fun": "execute",
         "id": "c3",
@@ -36,6 +48,7 @@ if __name__ == "__main__":
     }
 
     vote = {
+        "is_wallet": True,
         "uid": "adjkla",
         "fun": "execute",
         "id": "ajay",
@@ -50,6 +63,8 @@ if __name__ == "__main__":
     }
 
     end = {
+        "is_wallet": True,
+        "uid": "adjkla",
         "fun": "execute",
         "id": "c3",
         "host": "localhost",
@@ -59,6 +74,8 @@ if __name__ == "__main__":
     }
 
     winner = {
+        "is_wallet": True,
+        "uid": "adjkla",
         "fun": "execute",
         "id": "c3",
         "host": "localhost",
@@ -68,6 +85,8 @@ if __name__ == "__main__":
     }
 
     vote_count = {
+        "is_wallet": True,
+        "uid": "adjkla",
         "fun": "execute",
         "id": "c3",
         "host": "localhost",

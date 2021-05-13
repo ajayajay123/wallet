@@ -1,61 +1,197 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="./../static/css/bootstrap.min.css"/>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <title>Project</title>
+        <style>
+            body{
+                margin:0;
+            }
+            .container{margin-left:150px;margin-right:150px}
 
-</head>
-<body >
-    <!-- <button type="button" class="btn btn-primary">Primary</button> -->
-    <div class="col-sm-12 my-auto">
-        <div id="login-box">
-            <form  method='POST'>
-                {% csrf_token %}
-                {{form.as_p}}
-            
-            </form>
-            <br> <button onclick="login()" class="btn btn-primary">Primary</button>
-            <dvi>Have tocken</dvi>
-        </div>
-        <section>
-
-        </section>
-        
-    </div>
-
-    <script>
-        let tocken = null;
-        function login()
-        {
-            let http = new XMLHttpRequest();
-            
-            http.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
-            var data = JSON.parse(this.responseText);
-            tocken = data["tocken"];
-            if(!tocken)
+            .title
             {
-                alert(data.msg);
+                font-size:14pt;
+                margin-bottom:10px;
             }
-            else {
-                document.cookie = "token="+tocken+";";
-                location.href = '/dashboard';
+            .row{line-height: 25px;margin-bottom:5px}
+            .btn-gp
+            {
+                display: flex;
+                flex-direction: row;
+                flex-wrap:wrap;
+                justify-content: start;
+                margin-top:15px;
+                margin-bottom:15px;
             }
+            .btn-gp button{margin-right:10px}
+            button{background:#3c6fc2; color:white;border:none;outline:none;border-radius:2px;height:25px;cursor:pointer;box-shadow:1px 1px 4px 0px rgba(0,0,0,.4);min-width:80px};
+            button:active{box-shadow: none;transform: translate(1px,1px);}
+            button a {color:white;text-decoration: none;}
+            input[type="text"]{border-color:#3c6fc2;height: 22px;border-radius: 2px;outline:none;}
+        </style>
+    </head>
+    <body>
+        <div class="row nav" style="display:flex;background:#3c6fc2;color:white;height:50px;align-items: center;width:100%;">
+           <div class="container" style="font-size:18pt">Project</div>
+        </div>
+        <div class="row container title">
+            Candidate
+        </div>
+        <!-- <div class="row container list">
+            <input type="radio" name="candidate" value="ram">Ram<br/>
+            <input type="radio" name="candidate" value="hari">Hari<br/>
+            <input type="radio" name="candidate" value="hari">Shyam<br/>
+            
+        </div>
+        <div class="row container btn-gp"><button onclick="submitForm()">Submit</button></div> -->
+        <div class="row container btn-gp" >
+            
+            {% if gov %}
+            <button onclick="get_add_user_token()"><a >Get user token</a></button>
+            <!-- <button><a href="add-user">Add user</a></button> -->
+            <button><a href="contract">Smart Contract</a></button>
+            <button><a href="add-voter">Add Voter</a></button>
+            <button onclick="start()">Start</button>
+            <button onclick="end()">End</button>
+            
+            <button><a href="get-vote-count">Get vote Count</a></button>
+            <button onclick="winner()">Winner</button>
+            {% endif %}
+
+            {% if normal %}
+            <button><a href="vote">vote</a></button>
+            {% endif %}
+
+        </div>
+        <div class="row container" id="response"></div>
+        <div id="popup" style="top:0; position:absolute;z-index:10; width:100vw; height: 100vh; background: rgba(0,0,0,.4); display: none;">
+            <div style="position:relative; width:40vw; height:40vh; top: 20vh; left: 20vw; border: 1px solid;">
+                <input id="contract-id" type="text" name="token" placeholder="Enter Contract Id"><br/>
+                <button onclick="contractIdSubmit()">Submit</button>
+                <button onclick="cancle()">Cancel</button>
+            </div>
+        </div>
+        <script type="text/javascript">
+            let uid = null;
+            var resDiv = document.getElementById("response");
+            var operation;
+            var popup = document.getElementById("popup");
+            function submitForm()
+            {
+                console.log('everything is working properly')
             }
-            };
-            let user_id = document.querySelector("input[name='user_id']").value;
-            let password = document.querySelector("input[name='password']").value;
-            http.open('POST',"/api/");
-            http.setRequestHeader("Content-Type", 'application/json');
-            http.send(JSON.stringify({"user_id": user_id, "password": password}));
 
-        }
+            function get_add_user_token()
+            {
+                var url = "http://192.168.1.7:8000/api/get-user-token/";
+                var resFun = RenderData(url, undefined);
+                    resFun.then( (res) =>{
+                        alert("Token is "+res.token);
+                
+                }, (error)=>{console.log("error");})
+                
+            }
 
-    </script>
-    
-    
+            function cancle()
+            {
+                operation = "";
+                popup.style.display = "none";
+            }
 
-</body>
+            function start()
+            {
+               operation = "start";
+                popup.style.display = "block";
+            }
+
+
+            function end()
+            {
+               operation = "end";
+                popup.style.display = "block";
+            }
+
+            function winner()
+            {
+               operation = "winner";
+                popup.style.display = "block";
+            }
+
+            function vote_count()
+            {
+               operation = "count";
+                popup.style.display = "block";
+            }
+
+            function contractIdSubmit()
+            {
+                var url = "http://192.168.1.7:8000/api/"+operation+"/"
+                var id = document.getElementById("contract-id").value;
+                var data = JSON.stringify({"id": id});
+                console.log("data to be sent ", data);
+                var resFun = RenderData(url, data);
+                resFun.then( (res) =>{
+                    console.log(res);
+                    
+                    // var data = JSON.parse(res);
+                    data = JSON.stringify(res);
+                    uid = res.uid;
+                    resDiv.innerHTML = data;
+                    statInterval();
+            
+                }, (error)=>{console.log("error");});
+                operation = "";
+                popup.style.display = "none";
+            }
+
+            function RenderData(url,data)
+            {
+                return new Promise(function(resolve,reject){
+                    var http = new XMLHttpRequest();
+                    http.open("post",url,true);
+                    http.onreadystatechange = function()
+                    {
+                        if(this.status == 200 && this.readyState == 4)
+                        {
+                            resolve(JSON.parse(this.responseText));
+                        }
+                        if(this.status != 200 && this.readyState == 4)
+                        {
+                            reject({status:false, msg : "failed to connect to server"});
+                        }
+                    }
+                    // [{"key":"Content-Type","value":"application/json","description":""}]
+                    http.setRequestHeader("Content-Type", "application/json");
+                    http.send((data != undefined) ? data : null);
+                    console.log("data to be sent ", data);
+                    
+                });
+            }
+
+        </script>
+
+<script>
+    let interval;
+    function statInterval(){
+       interval = setTimeout(() =>{
+            var url = "http://192.168.1.7:8000/api/uid/";
+            var resFun = RenderData(url, JSON.stringify({"uid": uid}));
+            resFun.then((res) =>{
+                console.log("Response of uid", res);
+                if(res.value != "no"){
+                clearInterval(interval);
+               
+                resDiv.innerHTML = JSON.stringify( res);
+                }
+                else{
+                    statInterval();
+                }
+            }) 
+        }, 5000);
+    }
+</script>
+   
+
+    </body>
 </html>

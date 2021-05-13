@@ -16,28 +16,33 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from walletapp import views as walletapp_view
+from walletapp.url import urlpatterns, page_url
 
 router = routers.SimpleRouter()
 # router.register(r'/', walletapp_view.home)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', walletapp_view.home),
-    # path('operation/', walletapp_view.operation),
-    path('dashboard', walletapp_view.dashboard),
-    path('home/', walletapp_view.home),
-    path('operation/', walletapp_view.operation_api),
-    # Callback
-    path('callback/', walletapp_view.callback_of_server),
-    path('setup-user/', walletapp_view.setup_user_callback),
-    path('setup-deploy/', walletapp_view.setup_deploy_callback),
-    path('setup-execute/', walletapp_view.setup_execute_callback),
+    # path('', walletapp_view.home),
+    # # path('operation/', walletapp_view.operation),
+    # path('dashboard', walletapp_view.dashboard),
+    # path('home/', walletapp_view.home),
+    # path('operation/', walletapp_view.operation_api),
+    # # Callback
+    # path('callback/', walletapp_view.callback_of_server),
+    # path('setup-user/', walletapp_view.setup_user_callback),
+    # path('setup-deploy/', walletapp_view.setup_deploy_callback),
+    # path('setup-execute/', walletapp_view.setup_execute_callback),
+    #
+    # # Api
+    # path('api/', walletapp_view.home_api),
+    # path('key_api/', walletapp_view.get_key_api),
+    # path('operation-api/', walletapp_view.operation_api),
+    # # Web
+    # path('', walletapp_view.home),
 
-    # Api
-    path('api/', walletapp_view.home_api),
-    path('key_api/', walletapp_view.get_key_api),
-    path('operation-api/', walletapp_view.operation_api),
-    # Web
-    path('', walletapp_view.home),
+    path('api/', include(urlpatterns)),
+    path('', include(page_url))
+
+
 ]

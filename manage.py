@@ -15,7 +15,7 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    execute_from_command_line(['./wallet/manage.py', 'runserver'])
+    execute_from_command_line(['./wallet/manage.py', 'runserver', '192.168.1.7:8000'])
     # execute_from_command_line(sys.argv)
 
 

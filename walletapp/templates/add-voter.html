@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width">
+        <title>Project</title>
+        <style>
+            body{
+                margin:0;
+            }
+            .container{margin-left:150px;margin-right:150px}
+
+            .title
+            {
+                font-size:14pt;
+                margin-bottom:10px;
+            }
+            .row{line-height: 25px;margin-bottom:5px}
+            .btn-gp
+            {
+                display: flex;
+                flex-direction: row;
+                flex-wrap:wrap;
+                justify-content: start;
+                margin-top:15px;
+                margin-bottom:15px;
+            }
+            .btn-gp button{margin-right:10px}
+            button{background:#3c6fc2; color:white;border:none;outline:none;border-radius:2px;height:25px;cursor:pointer;box-shadow:1px 1px 4px 0px rgba(0,0,0,.4);min-width:80px};
+            button:active{box-shadow: none;transform: translate(1px,1px);}
+            input[type="text"]{border-color:#3c6fc2;height: 22px;border-radius: 2px;outline:none;}
+        </style>
+    </head>
+    <body>
+        <div class="row nav" style="display:flex;background:#3c6fc2;color:white;height:50px;align-items: center;width:100%;">
+            <div class="container" style="font-size:18pt">Project</div>
+         </div>
+        <div class="row container title">
+            Smart Contract
+        </div>
+        <div class="row container" style="text-indent: 16px;">
+            <input type="text" id="contractor-id" placeholder="Enter Contractor Id">
+        </div>
+        <div class="row container" id="add-candidate">
+            Voter
+           <div class="row">1. <input type="text" placeholder="Enter Voter Name"><br/></div>
+        </div>
+        <div class="row container btn-gp">
+            <button onclick="addCandidate()">Add</button>
+            <button onclick="submitForm()">Submit</button>
+        </div>
+        <div class="row container" id="response"></div>
+        <script type="text/javascript">
+            var count = 1;
+            var url = "http://192.168.1.7:8000/api/add/"
+            function addCandidate()
+            {
+                var element = document.createElement("div");
+                element.classList.add("row");
+                element.innerHTML = (++count) + ". <input type='text' placeholder='Enter Candidate Name'>";
+                document.getElementById("add-candidate").appendChild(element);
+            }
+            function submitForm()
+            {
+                var  id = document.getElementById("contractor-id").value.toLowerCase();
+
+                var candidateList =  [] ;
+
+                var data = {}
+                data.contractor_id = id;
+                data.candidate = [];
+                var inputs = document.querySelectorAll("#add-candidate input");
+                for ( var i = 0 ; i < inputs.length ; i++)
+                {
+                    data.candidate.push(inputs[i].value.toLowerCase());
+                    candidateList.push(inputs[i].value);
+                }
+                //contractorList[id] = candidateList;
+
+                var reqData = {
+                            "id": data.contractor_id,
+                                "voter_list": data.candidate
+                            }
+                var resFun = RenderData(url,JSON.stringify(reqData));
+                resFun.then( (res) =>{
+                    console.log(res);
+
+
+                    var data = res;
+                    if(!data.error){
+                        statInterval();
+                        uid = data.uid;
+                    }
+
+                    document.getElementById("response").innerHTML= JSON.stringify(res);
+
+            }, (error)=>{console.log("error");})
+
+
+                // setcookie("myfile_contractorlist",JSON.stringify(contractorList),30,"/");
+
+
+            }
+        </script>
+
+<script type="text/javascript">
+    let uid = null;
+    var resDiv = document.getElementById("response");
+
+        // function submitForm()
+        // {
+        //     console.log('everything is working properly')
+        //     var inputDiv = document.getElementById("input-id");
+
+        //     var user_id = inputDiv.innerHTML;
+        //     var data = JSON.stringify({"user_id": user_id});
+        //     var resFun = RenderData(url, data);
+        //     resFun.then( (res) =>{
+        //         console.log(res);
+        //         statInterval();
+        //         var data = JSON.parse(res);
+        //         uid = data.uid;
+
+        // }, (error)=>{console.log("error");})
+        // }
+
+        function RenderData(url,data)
+        {
+            return new Promise(function(resolve,reject){
+                var http = new XMLHttpRequest();
+                http.open("post",url,true);
+                http.onreadystatechange = function()
+                {
+                    if(this.status == 200 && this.readyState == 4)
+                    {
+                        resolve(JSON.parse(this.responseText));
+                    }
+                    if(this.status != 200 && this.readyState == 4)
+                    {
+                        reject({status:false, msg : "failed to connect to server"});
+                    }
+                }
+                // [{"key":"Content-Type","value":"application/json","description":""}]
+                http.setRequestHeader("Content-Type", "application/json");
+                http.send((data != undefined) ? data : null);
+            });
+        }
+    </script>
+
+<script>
+    let interval;
+    function statInterval(){
+       interval = setTimeout(() =>{
+            var url = "http://192.168.1.7:8000/api/uid/";
+            var resFun = RenderData(url, JSON.stringify({"uid": uid}));
+            resFun.then((res) =>{
+                console.log("Response of uid", res);
+                if(res.value != "no"){
+                clearInterval(interval);
+
+                resDiv.innerHTML = JSON.stringify( res);
+                }
+                else{
+                    statInterval();
+                }
+            })
+        }, 5000);
+    }
+</script>
+    </body>
+</html>

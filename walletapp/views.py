@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,12 +11,22 @@ from .models import User, Transaction, Contract
 from .forms import Login
 from hashlib import md5
 import traceback
+from .Voting import Voting
 
 address = "localhost:9000"
-user_session = {}
+user_session = {"test": "gov_user"}
 user_session_rev = {}
 node_certificate = {}
 user_key = {}
+
+user = []
+contract = {}
+
+
+def get_client(wallet_address) -> wallet_pb2_grpc.WalletStub:
+    channel = grpc.insecure_channel(wallet_address)
+    stub = wallet_pb2_grpc.WalletStub(channel=channel)
+    return stub
 
 
 # Create your views here.
@@ -36,20 +47,27 @@ def home(request):
         pass
     else:
         form = Login()
-        return render(request, './index.html', {'form': form})
+        return render(request, './old-index.html', {'form': form})
 
 
 def dashboard(request):
     token = request.COOKIES['token']
     user_type = [False, False, False]
     # index = user_session[token].get("user_type")
-    index = 1
-    user_type[index-1] = True
+    user_id = user_session['test']
+    user = User.objects.filter(user_id=user_id).first()
+    if user is None:
+        return HttpResponse("User not found")
+    index = user.user_type
+    user_type[index - 1] = True
+    if index == 1:
+        contract: Contract = Contract.objects.filter(user=user)
+        return render(request, './dashboard.html', {'contract': contract, 'g': True})
     return render(request, './dashboard.html', {'g': user_type[0], 'r': user_type[1], 'n': user_type[2]})
 
 
 def operation(request):
-    return render(request, './index.html')
+    return render(request, './old-index.html')
 
 
 @api_view(['POST', 'GET'])
@@ -95,7 +113,7 @@ def operation_api(request):
 
 
 def gen_fun(data):
-    data = {'gen_fun': 'deploy_contract', 'contract_name': 'afasa', 'contract_list': ['afda', 'adfad', 'fdfdf']}
+    data = {'fun': 'deploy_contract', 'name': 'afasa', 'contract_list': ['afda', 'adfad', 'fdfdf']}
     fun = data.get('fun')
     print("gen_fun ", data)
     try:
@@ -104,7 +122,7 @@ def gen_fun(data):
             pass
         elif fun == "deploy_contract":
             res = deploy_contract(data)
-            return Response(res)
+            return {"msg": res}
         elif fun == "execute":
             sub_operation = data.get('operation')
             if sub_operation == "add_voter":
@@ -122,29 +140,33 @@ def gen_fun(data):
 
 
 def deploy_contract(data):
+    print("deploy contract")
     contract_name = data.get('name')
     user_id = "gov_user"
     uid = generate_uid()
     user: User = User.objects.filter(user_id=user_id).first()
     contract = Contract()
     contract.name = contract_name
-    contract.contract_id = address + "_" + uid
+    contract.contract_id = "address" + "_" + uid
     contract.user = user
     contract.save()
 
-    candidates = data.get("candidates")
-    del data["candidates"]
+    candidates = data.get("contract_list")
+    del data["contract_list"]
 
     data['params'] = {"candidate": candidates}
-
-    data = get_new_data_transaction(data, uid, "http://127.0.0.1:8000/setup-user/", user)
-    res = get_client(address).capp_execute(wallet_pb2.WalletData(data=json.dumps(data)))
-    return res
+    data['uid'] = uid
+    data['contract_name'] = "voting"
+    data['id'] = uid
+    data = get_new_data_transaction(data=data, uid=uid, url="http://127.0.0.1:8000/setup-deploy/", user=user)
+    print("data to be sent for deploy ", data)
+    res = get_client(address).contract_execute(wallet_pb2.WalletData(data=json.dumps(data)))
+    return res.data
 
 
 def add_user(data):
     uid = generate_uid()
-    user = add_user_model(data.get("user_id"), data.get('password'))
+    #    user = add_user_model(data.get("user_id"), data.get('password'))
     del data['password']
     data['uid'] = uid
     data = get_new_data_transaction(data, uid, user, "http://127.0.0.1:8000/setup-user/")
@@ -166,10 +188,15 @@ def wallet_server_call(data):
     pass
 
 
-def get_client(address) -> wallet_pb2_grpc.WalletStub:
-    channel = grpc.insecure_channel(address)
-    stub = wallet_pb2_grpc.WalletStub(channel=channel)
-    return stub
+# def get_client(address) -> wallet_pb2_grpc.WalletStub:
+#     channel = grpc.insecure_channel(address)
+#     stub = wallet_pb2_grpc.WalletStub(channel=channel)
+#     return stub
+#
+
+def get_contract(user: User):
+    contracts = Contract.objects.filter(user=user)
+    return contracts
 
 
 @api_view(['POST'])
@@ -186,6 +213,10 @@ def setup_execute_callback(request):
 def setup_deploy_callback(request):
     data = request.data
     print("callback deploy ", data)
+    contract = Contract.objects.filter(contract_id=data.get("address_" + data.get('uid')))
+    contract.status = 1
+    contract.save()
+    return Response({"msg": "okay"})
     pass
 
 
@@ -207,17 +238,18 @@ def get_new_data_transaction(data, uid, user, url):
 
 @api_view(['POST'])
 def setup_user_callback(request):
-    data = json.loads(request.body.decode())
-    print("callback recive", data)
-    tran: Transaction = Transaction.objects.filter(uid=data.get('uid')).first()
-    user: User = tran.user
-
-    user.public_key = data.get('key').get('public')
-    user.private_key = data.get('key').get('private')
-    user.save()
-    tran.hash = data.get('hash')
-    tran.output = data.get('output')
-    tran.save()
+    print("callbac is ", request.data)
+    # data = json.loads(request.body.decode())
+    # print("callback recive", data)
+    # tran: Transaction = Transaction.objects.filter(uid=data.get('uid')).first()
+    # user: User = tran.user
+    #
+    # user.public_key = data.get('key').get('public')
+    # user.private_key = data.get('key').get('private')
+    # user.save()
+    # tran.hash = data.get('hash')
+    # tran.output = data.get('output')
+    # tran.save()
     return JsonResponse({"msg": "okay"})
     pass
 
